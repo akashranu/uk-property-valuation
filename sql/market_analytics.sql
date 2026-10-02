@@ -1,4 +1,4 @@
--- Query 1: Quarterly Sales Momentum with LAG Window Function
+-- Quarterly Sales Momentum with LAG Window Function
 SELECT 
     town_city,
     transfer_year,
@@ -24,7 +24,7 @@ WHERE town_city IN ('LONDON', 'MANCHESTER', 'BIRMINGHAM', 'BRISTOL', 'READING')
 GROUP BY town_city, transfer_year, transfer_quarter
 ORDER BY town_city, transfer_year, transfer_quarter;
 
--- Query 2: Price Quartile Distribution using NTILE
+-- Price Quartile Distribution using NTILE
 WITH price_buckets AS (
     SELECT 
         town_city,

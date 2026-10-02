@@ -1,15 +1,20 @@
+import os
 import time
 import pandas as pd
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+load_dotenv()
+
 # Database Connection Configuration
-DB_USER = "akash_property_ml"
-DB_PASS = "Oligopolistic2"  # Replace with your actual user password
-DB_HOST = "localhost"
-DB_PORT = "3306"
-DB_NAME = "uk_property_db"
+DB_USER = os.getenv("DB_USER")
+DB_PASS = os.getenv("DB_PASS")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "3306")
+DB_NAME = os.getenv("DB_NAME", "uk_property_db")
 
 DATABASE_URI = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
 CSV_FILE_PATH = "data/pp-2024.csv"
 
 # Define Explicit Schema Columns (matching the Land Registry technical spec)
@@ -34,7 +39,6 @@ COLUMN_NAMES = [
 
 
 def ingest_data(chunk_size: int = 50000):
-    print("Connecting to MySQL...")
     engine = create_engine(DATABASE_URI)
 
     print(f"Starting ingestion from {CSV_FILE_PATH} in chunks of {chunk_size} rows...")
