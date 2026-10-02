@@ -13,35 +13,39 @@ The project demonstrates production-grade machine learning: relational database 
 
 ## Architecture Overview
 
-HM Land Registry (Raw CSV)
-│
-▼
-┌─────────────────────────┐
-│   MySQL Relational DB   │ ── ETL & Outlier Scrubbing (£50k to £10M)
-│  (vw_property_features) │ ── Postcode Outward Code Extraction (e.g. SW11, RG1)
-└─────────────────────────┘
-│
-▼
-┌─────────────────────────┐
-│   ML Training Pipeline  │ ── Train/Test Split (80/20) prior to feature creation
-│   (src/train_model.py)  │ ── Target: Log-Transformed Price ln(1 + p)
-│                         │ ── Smoothed Target Encoding (m-estimate, m=10)
-└─────────────────────────┘
-│
-├─────────────────────────────────┐
-▼                                 ▼
-┌───────────────────────────┐     ┌───────────────────────────┐
-│     Native Artifacts      │     │      Model Diagnostics    │
-│  - xgb_valuation_model.json│    │  - TreeSHAP Beeswarm Plot │
-│  - metadata.json (lookups)│     │  - Local Waterfall Plots  │
-└───────────────────────────┘     └───────────────────────────┘
-│
-┌───────┴────────────────┐
-▼                        ▼
-┌─────────────────────┐  ┌───────────────────────────────────┐
-│ CLI Valuation Tool  │  │ FastAPI REST Microservice         │
-│ (src/predict.py)    │  │ (src/api.py -> POST /predict)     │
-└─────────────────────┘  └───────────────────────────────────┘
+```mermaid
+flowchart TD
+    A[HM Land Registry Raw CSV] --> B[(MySQL Database)]
+    
+    subgraph Storage & ETL
+        B -->|vw_property_features| C[Outlier Filtering: £50k to £10M]
+        C --> D[Postcode Outward Extraction: e.g., SW11, RG1]
+    end
+
+    D --> E[Train/Test Split 80/20]
+
+    subgraph Feature Pipeline
+        E --> F[Target: Log-Transformed Price ln 1+p]
+        F --> G[Bayesian Smoothed Target Encoding m=10]
+        G --> H[One-Hot Categorical Encoding]
+    end
+
+    H --> I[XGBoost Regressor Training]
+
+    subgraph Artifact Serialization
+        I --> J[xgb_valuation_model.json]
+        I --> K[metadata.json Lookup Maps]
+        I --> L[TreeSHAP Interpretability Plots]
+    end
+
+    J --> M[Inference Layer]
+    K --> M
+
+    subgraph Production Serving
+        M --> N[CLI Tool: src/predict.py]
+        M --> O[FastAPI Microservice: POST /predict]
+    end
+```
 
 
 ---
